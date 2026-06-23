@@ -151,7 +151,7 @@ describe("ConfidentialToken", () => {
     });
   });
 
-  describe("setViewerKey()", () => {
+  describe("setViewerPrivateKey()", () => {
     it("allows setting viewer key after construction", () => {
       const token = createToken();
       // Should not throw
