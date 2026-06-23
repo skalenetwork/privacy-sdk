@@ -40,8 +40,7 @@ Here is what happens end-to-end when you call `token.transfer(to, amount)`:
 6. Block N+1: ephemeral wallet calls onDecrypt(decryptedArgs)
 7. Contract: decodes amount from decryptedArgs, updates sender & receiver balances
 8. Contract: re-encrypts updated balances for each holder
-9. Contract: emits EncryptedTransfer(from, to, reEncryptedValue, transferId)
-```
+9. Contract: emits EncryptedTransfer(transferId, from, to, encryptedData)
 
 `waitForCtx()` waits for step 6–9. The `ctxReceipt` it returns contains the `EncryptedTransfer`
 event with the final `transferId`, which is needed for historic decryption.
