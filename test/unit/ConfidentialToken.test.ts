@@ -120,7 +120,7 @@ describe("ConfidentialToken", () => {
     });
   });
 
-  describe("balanceOf()", () => {
+  describe("decryptBalance()", () => {
     it("throws without viewer key", async () => {
       const token = createToken();
 
