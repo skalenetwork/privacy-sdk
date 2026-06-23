@@ -1,58 +1,52 @@
 import { encodeAbiParameters, encodeFunctionData, type Hex } from "viem";
 import { confidentialWrapperAbi } from "../abi/confidentialWrapper.js";
-import { getValueForCtx } from "./funding.js";
-import type {
-  ActionConfig,
-  ApproveParams,
-  TransferParams,
-  WrapParams,
-  UnwrapParams,
-} from "./types.js";
+import { getCtxOperationCost } from "./funding.js";
+import type { ActionConfig } from "./types.js";
 
-export async function approve(config: ActionConfig, params: ApproveParams): Promise<Hex> {
+export async function approve(config: ActionConfig, spender: Hex, amount: bigint): Promise<Hex> {
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "approve",
-    args: [params.spender, params.amount],
+    args: [spender, amount],
   });
   return config.signer.sendTransaction({ to: config.address, data });
 }
 
-export async function transfer(config: ActionConfig, params: TransferParams): Promise<Hex> {
-  const value = await getValueForCtx(config);
+export async function transfer(config: ActionConfig, to: Hex, amount: bigint): Promise<Hex> {
+  const value = await getCtxOperationCost(config);
 
   const valueHex = encodeAbiParameters(
     [{ type: "address" }, { type: "uint256" }],
-    [config.signer.address, params.amount],
+    [config.signer.address, amount],
   );
   const encryptedValue = await config.bite.encryptMessageForCTX(valueHex, config.address);
 
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "encryptedTransfer",
-    args: [params.to, encryptedValue as Hex],
+    args: [to, encryptedValue as Hex],
   });
   return config.signer.sendTransaction({ to: config.address, data, value });
 }
 
-export async function wrap(config: ActionConfig, params: WrapParams): Promise<Hex> {
-  const value = await getValueForCtx(config);
+export async function wrap(config: ActionConfig, receiver: Hex, amount: bigint): Promise<Hex> {
+  const value = await getCtxOperationCost(config);
 
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "depositForWithGasToken",
-    args: [params.receiver, params.amount],
+    args: [receiver, amount],
   });
   return config.signer.sendTransaction({ to: config.address, data, value });
 }
 
-export async function unwrap(config: ActionConfig, params: UnwrapParams): Promise<Hex> {
-  const value = await getValueForCtx(config);
+export async function unwrap(config: ActionConfig, receiver: Hex, amount: bigint): Promise<Hex> {
+  const value = await getCtxOperationCost(config);
 
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "withdrawToWithGasToken",
-    args: [params.receiver, params.amount],
+    args: [receiver, amount],
   });
   return config.signer.sendTransaction({ to: config.address, data, value });
 }

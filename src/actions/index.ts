@@ -1,9 +1,13 @@
 // Actions - standalone, tree-shakable functions
 export { approve, transfer, wrap, unwrap } from "./transfers.js";
 
-export { getCtxBalance, getCtxFee, fundCtxBalance, getValueForCtx } from "./funding.js";
+export {
+  getCtxBalance,
+  getCtxRawCost as getCtxFee,
+  getCtxOperationCost as getValueForCtx,
+} from "./funding.js";
 
-export { decryptTokenBalance, decryptHistoricTransferData, getTransferId } from "./decrypt.js";
+export { decryptTokenBalance, getTransferId } from "./decrypt.js";
 
 export {
   registerViewerKey,
@@ -14,19 +18,4 @@ export {
 } from "./access.js";
 
 // Types
-export type {
-  ActionConfig,
-  TransferParams,
-  WrapParams,
-  UnwrapParams,
-  ApproveParams,
-  TopUpParams,
-  RegisterViewerKeyParams,
-  AuthorizeHistoricViewForRangeParams,
-  AuthorizeHistoricViewForTransferParams,
-  RevokeHistoricViewParams,
-  GetTransferIdParams,
-  RequestTransferDecryptionParams,
-  DecryptHistoricTransferDataParams,
-  DecryptBalanceParams,
-} from "./types.js";
+export type { ActionConfig } from "./types.js";

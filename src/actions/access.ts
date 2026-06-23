@@ -1,21 +1,11 @@
 import { encodeFunctionData, parseEventLogs, type Hex } from "viem";
 import { confidentialWrapperAbi } from "../abi/confidentialWrapper.js";
 import { parsePublicKeyCoordinates } from "../utils/viewerKey.js";
-import { getValueForCtx } from "./funding.js";
-import type {
-  ActionConfig,
-  RegisterViewerKeyParams,
-  AuthorizeHistoricViewForRangeParams,
-  AuthorizeHistoricViewForTransferParams,
-  RevokeHistoricViewParams,
-  RequestTransferDecryptionParams,
-} from "./types.js";
+import { getCtxOperationCost } from "./funding.js";
+import type { ActionConfig } from "./types.js";
 
-export async function registerViewerKey(
-  config: ActionConfig,
-  params: RegisterViewerKeyParams,
-): Promise<Hex> {
-  const { x, y } = parsePublicKeyCoordinates(params.publicKey);
+export async function registerViewerKey(config: ActionConfig, publicKey: Hex): Promise<Hex> {
+  const { x, y } = parsePublicKeyCoordinates(publicKey);
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "setViewerPublicKey",
@@ -26,48 +16,45 @@ export async function registerViewerKey(
 
 export async function authorizeHistoricViewForRange(
   config: ActionConfig,
-  params: AuthorizeHistoricViewForRangeParams,
+  address: Hex,
+  fromTimestamp: bigint,
+  toTimestamp: bigint,
 ): Promise<Hex> {
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "authorizeHistoricViewTimeRange",
-    args: [params.address, params.fromTimestamp, params.toTimestamp],
+    args: [address, fromTimestamp, toTimestamp],
   });
   return config.signer.sendTransaction({ to: config.address, data });
 }
 
 export async function authorizeHistoricViewForTransfer(
   config: ActionConfig,
-  params: AuthorizeHistoricViewForTransferParams,
+  address: Hex,
+  transferId: bigint,
 ): Promise<Hex> {
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "authorizeHistoricViewTransferId",
-    args: [params.address, params.transferId],
+    args: [address, transferId],
   });
   return config.signer.sendTransaction({ to: config.address, data });
 }
 
-export async function revokeHistoricView(
-  config: ActionConfig,
-  params: RevokeHistoricViewParams,
-): Promise<Hex> {
+export async function revokeHistoricView(config: ActionConfig, address: Hex): Promise<Hex> {
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "removeHistoricViewAuth",
-    args: [params.address],
+    args: [address],
   });
   return config.signer.sendTransaction({ to: config.address, data });
 }
 
-export async function requestTransferDecryption(
-  config: ActionConfig,
-  params: RequestTransferDecryptionParams,
-): Promise<Hex> {
-  const value = await getValueForCtx(config);
+export async function requestTransferDecryption(config: ActionConfig, ctxHash: Hex): Promise<Hex> {
+  const value = await getCtxOperationCost(config);
 
   // 1. Get encryptedData from the EncryptedTransfer event
-  const receipt = await config.publicClient.waitForTransactionReceipt({ hash: params.ctxHash });
+  const receipt = await config.publicClient.waitForTransactionReceipt({ hash: ctxHash });
   const events = parseEventLogs({
     abi: confidentialWrapperAbi,
     logs: receipt.logs,

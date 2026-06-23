@@ -6,6 +6,7 @@ import type { ActionConfig } from "./actions/types.js";
 import * as actions from "./actions/index.js";
 import { confidentialWrapperAbi } from "./abi/confidentialWrapper.js";
 import { createCtxPromise, type CtxPromise, waitForCtx } from "./utils/ctx.js";
+import { decryptTransferData } from "./utils/crypto.js";
 
 export class ConfidentialToken {
   readonly rpcUrl: string;
@@ -93,25 +94,25 @@ export class ConfidentialToken {
     if (!this.viewerPrivateKey) {
       throw new Error("Viewer key is required to decrypt balance.");
     }
-    return actions.decryptTokenBalance(this.actionConfig, { viewerKey: this.viewerPrivateKey });
+    return actions.decryptTokenBalance(this.actionConfig, this.viewerPrivateKey);
   }
 
   // --- Standard ERC-20 writes ---
 
   async approve(spender: Hex, amount: bigint): Promise<Hex> {
-    return actions.approve(this.actionConfig, { spender, amount });
+    return actions.approve(this.actionConfig, spender, amount);
   }
 
   // --- Privacy-specific writes ---
 
   transfer(to: Hex, amount: bigint): CtxPromise {
-    return createCtxPromise(actions.transfer(this.actionConfig, { to, amount }), this.client);
+    return createCtxPromise(actions.transfer(this.actionConfig, to, amount), this.client);
   }
 
   // --- Viewer key management ---
 
   async registerViewerPublicKey(publicKey: Hex): Promise<Hex> {
-    return actions.registerViewerKey(this.actionConfig, { publicKey });
+    return actions.registerViewerKey(this.actionConfig, publicKey);
   }
 
   async authorizeHistoricViewForRange(
@@ -119,19 +120,20 @@ export class ConfidentialToken {
     fromTimestamp: bigint,
     toTimestamp: bigint,
   ): Promise<Hex> {
-    return actions.authorizeHistoricViewForRange(this.actionConfig, {
+    return actions.authorizeHistoricViewForRange(
+      this.actionConfig,
       address,
       fromTimestamp,
       toTimestamp,
-    });
+    );
   }
 
   async authorizeHistoricViewForTransfer(address: Hex, transferId: bigint): Promise<Hex> {
-    return actions.authorizeHistoricViewForTransfer(this.actionConfig, { address, transferId });
+    return actions.authorizeHistoricViewForTransfer(this.actionConfig, address, transferId);
   }
 
   async revokeHistoricView(address: Hex): Promise<Hex> {
-    return actions.revokeHistoricView(this.actionConfig, { address });
+    return actions.revokeHistoricView(this.actionConfig, address);
   }
 
   // --- Decrypt / history ---
@@ -140,7 +142,7 @@ export class ConfidentialToken {
     if (!this.viewerPrivateKey) {
       throw new Error("Viewer key is required to decrypt transfer data.");
     }
-    const txHash = await actions.requestTransferDecryption(this.actionConfig, { ctxHash });
+    const txHash = await actions.requestTransferDecryption(this.actionConfig, ctxHash);
     const { ctxReceipt } = await waitForCtx(txHash, this.client);
     const events = parseEventLogs({
       abi: confidentialWrapperAbi,
@@ -155,6 +157,6 @@ export class ConfidentialToken {
     if (!encryptedData) {
       throw new Error("CTX receipt does not contain a ReEncryptedTransfer event.");
     }
-    return actions.decryptHistoricTransferData({ encryptedData, viewerKey: this.viewerPrivateKey });
+    return decryptTransferData(encryptedData, this.viewerPrivateKey);
   }
 }

@@ -88,19 +88,17 @@ All take `ActionConfig` as first argument. Returns `Promise<Hex>` (tx hash).
 
 | Function | Params |
 |----------|--------|
-| `approve(config, {spender, amount})` | ERC-20 approve |
-| `transfer(config, {to, amount})` | Encrypted transfer |
-| `wrap(config, {receiver, amount})` | Deposit ERC-20 → confidential |
-| `unwrap(config, {receiver, amount})` | Withdraw confidential → ERC-20 |
+| `approve(config, spender, amount)` | ERC-20 approve |
+| `transfer(config, to, amount)` | Encrypted transfer |
+| `wrap(config, receiver, amount)` | Deposit ERC-20 → confidential |
+| `unwrap(config, receiver, amount)` | Withdraw confidential → ERC-20 |
 | `getCtxBalance(config)` | Returns `Promise<bigint>` — CTX gas balance |
 | `getCtxFee(config)` | Returns `Promise<bigint>` — CTX callback fee |
-| `fundCtxBalance(config, {amount})` | Top up CTX balance |
-| `getValueForCtx(config)` | Returns `Promise<bigint>` — required `msg.value` |
-| `decryptTokenBalance(config, {viewerKey})` | Returns `Promise<bigint>` |
-| `decryptHistoricTransferData({encryptedData, viewerKey})` | Returns `Promise<TransferData>` |
-| `getTransferId(config, {ctxHash})` | Returns `Promise<bigint>` |
-| `registerViewerKey(config, {publicKey})` | Register viewer key |
-| `authorizeHistoricViewForRange(config, {address, fromTimestamp, toTimestamp})` | Grant time-range access |
-| `authorizeHistoricViewForTransfer(config, {address, transferId})` | Grant per-transfer access |
-| `revokeHistoricView(config, {address})` | Revoke historic view |
-| `requestTransferDecryption(config, {ctxHash})` | Send re-encryption request |
+| `getValueForCtx(config)` | Returns `Promise<bigint>` — required `msg.value` for CTX |
+| `decryptTokenBalance(config, viewerKey)` | Returns `Promise<bigint>` |
+| `getTransferId(config, ctxHash)` | Returns `Promise<bigint>` |
+| `registerViewerKey(config, publicKey)` | Register viewer key |
+| `authorizeHistoricViewForRange(config, address, fromTimestamp, toTimestamp)` | Grant time-range access |
+| `authorizeHistoricViewForTransfer(config, address, transferId)` | Grant per-transfer access |
+| `revokeHistoricView(config, address)` | Revoke historic view |
+| `requestTransferDecryption(config, ctxHash)` | Send re-encryption request |

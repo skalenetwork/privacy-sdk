@@ -15,10 +15,10 @@ export class ConfidentialWrapper extends ConfidentialToken {
   }
 
   wrap(receiver: Hex, amount: bigint): CtxPromise {
-    return createCtxPromise(actions.wrap(this.actionConfig, { receiver, amount }), this.client);
+    return createCtxPromise(actions.wrap(this.actionConfig, receiver, amount), this.client);
   }
 
   unwrap(receiver: Hex, amount: bigint): CtxPromise {
-    return createCtxPromise(actions.unwrap(this.actionConfig, { receiver, amount }), this.client);
+    return createCtxPromise(actions.unwrap(this.actionConfig, receiver, amount), this.client);
   }
 }
