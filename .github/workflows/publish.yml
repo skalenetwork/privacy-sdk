@@ -43,7 +43,7 @@ jobs:
           echo "Version $VERSION"
 
       - name: Publish on npm
-        if: env.BRANCH != 'stable'
+        if: env.BRANCH != 'main'
         run: |
           npm version --no-git-tag-version $VERSION
           npm publish --access public --tag ${{ env.BRANCH }}
@@ -51,7 +51,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish on npm (stable)
-        if: env.BRANCH == 'stable'
+        if: env.BRANCH == 'main'
         run: |
           npm version --no-git-tag-version $VERSION
           npm publish --access public
@@ -60,7 +60,7 @@ jobs:
 
       - name: Set release
         run: |
-          if [[ "$BRANCH" == "stable" ]]; then
+          if [[ "$BRANCH" == "main" ]]; then
             export PRERELEASE=false
           else
             export PRERELEASE=true

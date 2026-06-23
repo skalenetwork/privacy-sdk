@@ -18,7 +18,7 @@ if [[ -z $VERSION ]]; then
       exit 1
 fi
 
-if [[ $BRANCH == 'stable' ]]; then
+if [[ $BRANCH == 'main' ]]; then
     echo $VERSION
     exit 0
 fi

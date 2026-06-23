@@ -16,7 +16,7 @@ Block N+1:  Ephemeral wallet calls onDecrypt(decryptedArgs) → balances updated
 ```
 
 This two-step nature means:
-- **`await token.transfer(...)`** resolves as soon as the origin tx is mined (intent submitted).
+- **`await token.transfer(...)`** resolves as soon as the origin tx is submitted (intent submitted).
 - **`await token.transfer(...).waitForCtx()`** waits for the callback too (balance actually updated).
 
 > Learn more: https://docs.skale.space/developers/programmable-privacy/conditional-transactions
@@ -46,7 +46,11 @@ Here is what happens end-to-end when you call `token.transfer(to, amount)`:
 `waitForCtx()` waits for step 6–9. The `ctxReceipt` it returns contains the `EncryptedTransfer`
 event with the final `transferId`, which is needed for historic decryption.
 
-## CtxPromise
+## How the SDK handles CTX
+
+The SDK abstracts the two-block CTX lifecycle behind familiar async patterns.
+
+### CtxPromise
 
 Methods that produce a CTX return a `CtxPromise` — a plain `Promise<Hex>` augmented with
 `.waitForCtx()`:
@@ -62,6 +66,17 @@ const { originHash, originReceipt, ctxHash, ctxReceipt } =
 
 Only `transfer`, `wrap`, and `unwrap` return `CtxPromise`. All other write methods return
 `Promise<Hex>` (plain origin hash).
+
+### CtxResult
+
+`waitForCtx()` resolves with a `CtxResult` containing both the origin and callback transactions:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `originHash` | `Hex` | Transaction hash of the original call (block N) |
+| `originReceipt` | `TransactionReceipt` | Full receipt of the origin transaction, including logs emitted at submission |
+| `ctxHash` | `Hex` | Transaction hash of the callback delivered by the ephemeral wallet (block N+1) |
+| `ctxReceipt` | `TransactionReceipt` | Full receipt of the callback transaction — contains events like `EncryptedTransfer` with the final `transferId` |
 
 ## Viewer Keys
 
