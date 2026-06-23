@@ -35,10 +35,10 @@ token.setViewerPrivateKey(privateKey);
 await token.registerViewerPublicKey(publicKey);
 
 // Wrap underlying ERC-20 → confidential token (approve underlying first)
-const { ctxHash } = await token.wrap(account.address, 1000n).waitForCtx();
+const { ctxHash: wrapCtxHash } = await token.wrap(account.address, 1000n).waitForCtx();
 
 // Confidential transfer
-const { ctxHash, ctxReceipt } = await token.transfer(recipient, 500n).waitForCtx();
+const { ctxHash: transferCtxHash, ctxReceipt } = await token.transfer(recipient, 500n).waitForCtx();
 
 // Decrypt balance
 const balance = await token.decryptBalance();
