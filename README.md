@@ -10,9 +10,12 @@ npm install @skalenetwork/privacy-sdk
 
 ## Quick Start
 
+The SDK accepts any signer that implements `{ address, sendTransaction }`. Here's how to initialize with popular web3 libraries:
+
+### With viem
+
 ```typescript
 import { ConfidentialWrapper } from "@skalenetwork/privacy-sdk";
-import { deriveViewerKeypair } from "@skalenetwork/privacy-sdk/utils";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -27,6 +30,56 @@ const token = new ConfidentialWrapper({
     sendTransaction: (tx) => walletClient.sendTransaction({ ...tx, chain: null }),
   },
 });
+```
+
+### With ethers v6
+
+```typescript
+import { ConfidentialWrapper } from "@skalenetwork/privacy-sdk";
+import { Wallet, JsonRpcProvider } from "ethers";
+
+const provider = new JsonRpcProvider(RPC_URL);
+const wallet = new Wallet("0x...", provider);
+
+const token = new ConfidentialWrapper({
+  rpcUrl: RPC_URL,
+  address: WRAPPER_ADDRESS,
+  signer: {
+    address: wallet.address as `0x${string}`,
+    sendTransaction: async (tx) => {
+      const resp = await wallet.sendTransaction(tx);
+      return resp.hash as `0x${string}`;
+    },
+  },
+});
+```
+
+### With web3.js
+
+```typescript
+import { ConfidentialWrapper } from "@skalenetwork/privacy-sdk";
+import Web3 from "web3";
+
+const web3 = new Web3(RPC_URL);
+const account = web3.eth.accounts.privateKeyToAccount("0x...");
+
+const token = new ConfidentialWrapper({
+  rpcUrl: RPC_URL,
+  address: WRAPPER_ADDRESS,
+  signer: {
+    address: account.address as `0x${string}`,
+    sendTransaction: async (tx) => {
+      const receipt = await web3.eth.sendTransaction({ from: account.address, ...tx });
+      return receipt.transactionHash as `0x${string}`;
+    },
+  },
+});
+```
+
+### Usage
+
+```typescript
+import { deriveViewerKeypair } from "@skalenetwork/privacy-sdk/utils";
 
 // Derive viewer keypair from a signed message (do this once per account)
 const sig = await walletClient.signMessage({ message: "SKALE Privacy Viewer Key", account });

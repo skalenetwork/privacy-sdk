@@ -3,6 +3,7 @@ export { ConfidentialWrapper } from "./ConfidentialWrapper.js";
 export { confidentialWrapperAbi } from "./abi/confidentialWrapper.js";
 export type { CtxPromise } from "./utils/ctx.js";
 export type {
+  Hex,
   ConfidentialTokenConfig,
   Signer,
   UnsignedTx,

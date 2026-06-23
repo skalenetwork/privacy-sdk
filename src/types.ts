@@ -1,5 +1,7 @@
 import type { Hex } from "viem";
 
+export type { Hex };
+
 export type Signer = {
   address: Hex;
   sendTransaction(tx: UnsignedTx): Promise<Hex>;

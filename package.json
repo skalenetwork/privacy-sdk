@@ -42,14 +42,12 @@
     "typecheck": "tsc --noEmit",
     "typecheck:all": "tsc --project tsconfig.test.json"
   },
-  "peerDependencies": {
-    "viem": ">=2.0.0"
-  },
   "dependencies": {
     "@noble/ciphers": "^1.2.1",
     "@noble/curves": "^1.8.2",
     "@noble/hashes": "^1.7.2",
-    "@skalenetwork/bite": "^0.8.2-develop.0"
+    "@skalenetwork/bite": "^0.8.2-develop.0",
+    "viem": "^2.47.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -62,7 +60,6 @@
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.60.1",
-    "viem": "^2.47.0",
     "vitest": "^2.1.9"
   }
 }
