@@ -1,0 +1,5 @@
+node_modules/
+dist/
+
+# E2E environment — copy from .env.e2e.example and fill in real values
+.env.e2e

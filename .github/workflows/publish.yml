@@ -1,0 +1,78 @@
+name: Publish to npm
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - develop
+      - beta
+      - main
+
+jobs:
+  publish:
+    name: Build and publish
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Set version and branch
+        run: |
+          export BRANCH=$GITHUB_BASE_REF
+          export VERSION=$(node -p "require('./package.json').version")
+          echo "Branch: $BRANCH"
+          echo "Base version: $VERSION"
+          export VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "Version $VERSION"
+
+      - name: Publish on npm
+        if: env.BRANCH != 'main'
+        run: |
+          npm version --no-git-tag-version $VERSION
+          npm publish --access public --tag ${{ env.BRANCH }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish on npm (stable)
+        if: env.BRANCH == 'main'
+        run: |
+          npm version --no-git-tag-version $VERSION
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Set release
+        run: |
+          if [[ "$BRANCH" == "main" ]]; then
+            export PRERELEASE=false
+          else
+            export PRERELEASE=true
+          fi
+          echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          draft: false
+          prerelease: ${{ env.PRERELEASE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
