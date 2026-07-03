@@ -13,10 +13,10 @@ export interface ResolvedConfig {
 export function getConfigFromEnv(): ResolvedConfig {
   const rpcUrl = process.env.SKALE_RPC_URL;
   const privateKey = (process.env.SKALE_PRIVATE_KEY ?? process.env.PRIVATE_KEY) as Hex | undefined;
-  const wrapperAddress = (process.env.SKALE_WRAPPER_ADDRESS ?? process.env.WRAPPER_ADDRESS) as Hex | undefined;
-  const viewerPrivateKey = (process.env.SKALE_VIEWER_PRIVATE_KEY ?? process.env.VIEWER_PRIVATE_KEY) as
-    | Hex
-    | undefined;
+  const wrapperAddress = (process.env.SKALE_WRAPPER_ADDRESS ?? process.env.WRAPPER_ADDRESS) as
+    Hex | undefined;
+  const viewerPrivateKey = (process.env.SKALE_VIEWER_PRIVATE_KEY ??
+    process.env.VIEWER_PRIVATE_KEY) as Hex | undefined;
 
   if (!rpcUrl) throw new Error("SKALE_RPC_URL env var is required");
   if (!privateKey) throw new Error("SKALE_PRIVATE_KEY or PRIVATE_KEY env var is required");
@@ -38,8 +38,7 @@ export function createWrapper(config: ResolvedConfig): ConfidentialWrapper {
     address: config.wrapperAddress,
     signer: {
       address: account.address,
-      sendTransaction: (tx) =>
-        walletClient.sendTransaction({ ...tx, chain: null }),
+      sendTransaction: (tx) => walletClient.sendTransaction({ ...tx, chain: null }),
     },
     viewerPrivateKey: config.viewerPrivateKey,
   });

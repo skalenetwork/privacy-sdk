@@ -8,20 +8,14 @@ export function wrapTokensTool(server: McpServer) {
     "wrap_tokens",
     "Wrap plain ERC-20 tokens into their confidential (encrypted) form. Requires prior ERC-20 approval.",
     {
-      receiver: z
-        .string()
-        .describe("Receiver address for the wrapped tokens (0x...)"),
-      amount: z
-        .string()
-        .describe("Amount to wrap in token base units"),
+      receiver: z.string().describe("Receiver address for the wrapped tokens (0x...)"),
+      amount: z.string().describe("Amount to wrap in token base units"),
     },
     async ({ receiver, amount }) => {
       const config = getConfigFromEnv();
       const wrapper = createWrapper(config);
 
-      const result = await wrapper
-        .wrap(receiver as Hex, BigInt(amount))
-        .waitForCtx();
+      const result = await wrapper.wrap(receiver as Hex, BigInt(amount)).waitForCtx();
 
       return {
         content: [
@@ -37,11 +31,11 @@ export function wrapTokensTool(server: McpServer) {
                 amount,
               },
               null,
-              2
+              2,
             ),
           },
         ],
       };
-    }
+    },
   );
 }

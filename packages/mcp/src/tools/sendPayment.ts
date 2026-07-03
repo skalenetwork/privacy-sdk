@@ -9,17 +9,13 @@ export function sendPaymentTool(server: McpServer) {
     "Send a confidential encrypted transfer to a recipient. The amount and balances remain hidden on-chain.",
     {
       to: z.string().describe("Recipient address (0x...)"),
-      amount: z
-        .string()
-        .describe("Amount to send in token base units (e.g. '1000000' for 1 USDC)"),
+      amount: z.string().describe("Amount to send in token base units (e.g. '1000000' for 1 USDC)"),
     },
     async ({ to, amount }) => {
       const config = getConfigFromEnv();
       const wrapper = createWrapper(config);
 
-      const result = await wrapper
-        .transfer(to as Hex, BigInt(amount))
-        .waitForCtx();
+      const result = await wrapper.transfer(to as Hex, BigInt(amount)).waitForCtx();
 
       return {
         content: [
@@ -34,11 +30,11 @@ export function sendPaymentTool(server: McpServer) {
                 amount,
               },
               null,
-              2
+              2,
             ),
           },
         ],
       };
-    }
+    },
   );
 }

@@ -8,20 +8,14 @@ export function unwrapTokensTool(server: McpServer) {
     "unwrap_tokens",
     "Unwrap confidential tokens back into plain ERC-20 tokens.",
     {
-      receiver: z
-        .string()
-        .describe("Receiver address for the unwrapped ERC-20 tokens (0x...)"),
-      amount: z
-        .string()
-        .describe("Amount to unwrap in token base units"),
+      receiver: z.string().describe("Receiver address for the unwrapped ERC-20 tokens (0x...)"),
+      amount: z.string().describe("Amount to unwrap in token base units"),
     },
     async ({ receiver, amount }) => {
       const config = getConfigFromEnv();
       const wrapper = createWrapper(config);
 
-      const result = await wrapper
-        .unwrap(receiver as Hex, BigInt(amount))
-        .waitForCtx();
+      const result = await wrapper.unwrap(receiver as Hex, BigInt(amount)).waitForCtx();
 
       return {
         content: [
@@ -37,11 +31,11 @@ export function unwrapTokensTool(server: McpServer) {
                 amount,
               },
               null,
-              2
+              2,
             ),
           },
         ],
       };
-    }
+    },
   );
 }

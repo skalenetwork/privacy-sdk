@@ -30,11 +30,11 @@ export function tokenInfoTool(server: McpServer) {
                 wrapperAddress: config.wrapperAddress,
               },
               null,
-              2
+              2,
             ),
           },
         ],
       };
-    }
+    },
   );
 }

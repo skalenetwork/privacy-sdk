@@ -8,9 +8,7 @@ export function revealTransferTool(server: McpServer) {
     "reveal_transfer",
     "Decrypt a historic confidential transfer to reveal its details (from, to, amount, timestamp).",
     {
-      ctxHash: z
-        .string()
-        .describe("The CTX transaction hash of the transfer to decrypt"),
+      ctxHash: z.string().describe("The CTX transaction hash of the transfer to decrypt"),
     },
     async ({ ctxHash }) => {
       const config = getConfigFromEnv();
@@ -31,11 +29,11 @@ export function revealTransferTool(server: McpServer) {
                 transferId: transfer.transferId.toString(),
               },
               null,
-              2
+              2,
             ),
           },
         ],
       };
-    }
+    },
   );
 }

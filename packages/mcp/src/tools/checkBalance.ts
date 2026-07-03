@@ -27,11 +27,11 @@ export function checkBalanceTool(server: McpServer) {
                 decimals,
               },
               null,
-              2
+              2,
             ),
           },
         ],
       };
-    }
+    },
   );
 }
