@@ -22,14 +22,21 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install dependencies
-        run: npm ci
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
-      - name: Build
-        run: npm run build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build SDK
+        run: pnpm --filter @skalenetwork/privacy-sdk run build
+
+      - name: Build MCP
+        run: pnpm --filter @skalenetwork/privacy-mcp run build
 
       - name: Set version and branch
         run: |
@@ -42,18 +49,38 @@ jobs:
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "Version $VERSION"
 
-      - name: Publish on npm
+      - name: Publish SDK (pre-release)
         if: env.BRANCH != 'main'
+        working-directory: packages/sdk
         run: |
-          npm version --no-git-tag-version $VERSION
+          npm version --no-git-tag-version ${{ env.VERSION }}
           npm publish --access public --tag ${{ env.BRANCH }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish on npm (stable)
-        if: env.BRANCH == 'main'
+      - name: Publish MCP (pre-release)
+        if: env.BRANCH != 'main'
+        working-directory: packages/mcp
         run: |
-          npm version --no-git-tag-version $VERSION
+          npm version --no-git-tag-version ${{ env.VERSION }}
+          npm publish --access public --tag ${{ env.BRANCH }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish SDK (stable)
+        if: env.BRANCH == 'main'
+        working-directory: packages/sdk
+        run: |
+          npm version --no-git-tag-version ${{ env.VERSION }}
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish MCP (stable)
+        if: env.BRANCH == 'main'
+        working-directory: packages/mcp
+        run: |
+          npm version --no-git-tag-version ${{ env.VERSION }}
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
