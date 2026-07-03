@@ -41,7 +41,7 @@ jobs:
       - name: Set version and branch
         run: |
           export BRANCH=$GITHUB_BASE_REF
-          export VERSION=$(node -p "require('./packages/sdk/package.json').version")
+          export VERSION=$(node -p "require('./package.json').version")
           echo "Branch: $BRANCH"
           echo "Base version: $VERSION"
           export VERSION=$(bash ./scripts/calculate_version.sh)
