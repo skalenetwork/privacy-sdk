@@ -1,10 +1,11 @@
 import { defineConfig } from "vitest/config";
-import { loadEnv } from "vite";
+import { config as loadDotenv } from "dotenv";
+
+loadDotenv({ path: ".env.e2e" });
 
 export default defineConfig({
   test: {
     include: ["test/e2e/**/*.test.ts"],
     testTimeout: 120_000,
-    env: loadEnv("e2e", process.cwd(), ""),
   },
 });
