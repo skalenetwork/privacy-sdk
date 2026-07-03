@@ -1,7 +1,7 @@
 import { ConfidentialWrapper } from "@skalenetwork/privacy-sdk";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import type { Hex } from "viem";
+import type { Hex, UnsignedTx } from "@skalenetwork/privacy-sdk";
 
 export interface ResolvedConfig {
   rpcUrl: string;
@@ -38,7 +38,7 @@ export function createWrapper(config: ResolvedConfig): ConfidentialWrapper {
     address: config.wrapperAddress,
     signer: {
       address: account.address,
-      sendTransaction: (tx) => walletClient.sendTransaction({ ...tx, chain: null }),
+      sendTransaction: (tx: UnsignedTx) => walletClient.sendTransaction({ ...tx, chain: null }),
     },
     viewerPrivateKey: config.viewerPrivateKey,
   });
