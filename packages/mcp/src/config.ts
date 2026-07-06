@@ -2,6 +2,7 @@ import { ConfidentialWrapper } from "@skalenetwork/privacy-sdk";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import type { Hex, UnsignedTx } from "@skalenetwork/privacy-sdk";
+import { DEFAULT_NETWORK, getChainConfig } from "./chains.js";
 
 export interface ResolvedConfig {
   rpcUrl: string;
@@ -11,17 +12,20 @@ export interface ResolvedConfig {
 }
 
 export function getConfigFromEnv(): ResolvedConfig {
-  const rpcUrl = process.env.SKALE_RPC_URL;
   const privateKey = (process.env.SKALE_PRIVATE_KEY ?? process.env.PRIVATE_KEY) as Hex | undefined;
-  const wrapperAddress = (process.env.SKALE_WRAPPER_ADDRESS ?? process.env.WRAPPER_ADDRESS) as
-    Hex | undefined;
+  if (!privateKey) throw new Error("SKALE_PRIVATE_KEY or PRIVATE_KEY env var is required");
+
   const viewerPrivateKey = (process.env.SKALE_VIEWER_PRIVATE_KEY ??
     process.env.VIEWER_PRIVATE_KEY) as Hex | undefined;
 
-  if (!rpcUrl) throw new Error("SKALE_RPC_URL env var is required");
-  if (!privateKey) throw new Error("SKALE_PRIVATE_KEY or PRIVATE_KEY env var is required");
-  if (!wrapperAddress)
-    throw new Error("SKALE_WRAPPER_ADDRESS or WRAPPER_ADDRESS env var is required");
+  // Explicit overrides take precedence; otherwise fall back to chain registry
+  const network = process.env.SKALE_NETWORK ?? DEFAULT_NETWORK;
+  const chain = getChainConfig(network);
+
+  const rpcUrl = process.env.SKALE_RPC_URL ?? chain.rpcUrl;
+  const wrapperAddress = (process.env.SKALE_WRAPPER_ADDRESS ??
+    process.env.WRAPPER_ADDRESS ??
+    chain.wrapperAddress) as Hex;
 
   return { rpcUrl, privateKey, wrapperAddress, viewerPrivateKey };
 }

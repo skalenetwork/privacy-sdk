@@ -20,16 +20,43 @@ Or run directly without installing:
 npx @skalenetwork/privacy-mcp
 ```
 
+## Quick setup
+
+```bash
+npx @skalenetwork/privacy-mcp init
+```
+
+Prompts for your private key and writes the config file automatically. Use `--client` to target a specific AI client:
+
+```bash
+npx @skalenetwork/privacy-mcp init --client vscode   # writes .vscode/mcp.json
+npx @skalenetwork/privacy-mcp init --client claude   # writes claude_desktop_config.json
+npx @skalenetwork/privacy-mcp init --client cursor   # prints config to stdout
+```
+
+The default network is `testnet`. Use `--network` to override (more networks coming):
+
+```bash
+npx @skalenetwork/privacy-mcp init --network testnet
+```
+
 ## Configuration
 
 The server is configured via environment variables:
 
 | Variable | Required | Description |
-|----------|----------|-------------|
-| `SKALE_RPC_URL` | yes | SKALE node RPC endpoint |
-| `SKALE_PRIVATE_KEY` or `PRIVATE_KEY` | yes | Private key for signing transactions (`0x...`) |
-| `SKALE_WRAPPER_ADDRESS` or `WRAPPER_ADDRESS` | yes | Confidential wrapper contract address (`0x...`) |
+|----------|----------|--------------|
+| `SKALE_PRIVATE_KEY` or `PRIVATE_KEY` | **yes** | Private key for signing transactions (`0x...`) |
+| `SKALE_NETWORK` | no | Network name (default: `testnet`) |
+| `SKALE_RPC_URL` | no | Override RPC endpoint (takes precedence over `SKALE_NETWORK`) |
+| `SKALE_WRAPPER_ADDRESS` or `WRAPPER_ADDRESS` | no | Override wrapper contract address (takes precedence over `SKALE_NETWORK`) |
 | `SKALE_VIEWER_PRIVATE_KEY` or `VIEWER_PRIVATE_KEY` | no | Viewer private key for balance decryption |
+
+### Supported networks
+
+| Name | Chain | RPC |
+|------|-------|-----|
+| `testnet` *(default)* | SKALE Base Sepolia | `https://base-sepolia-testnet.skalenodes.com/v1/base-testnet` |
 
 ## Tools
 
@@ -98,14 +125,15 @@ Add to `.vscode/mcp.json` in your project:
       "command": "npx",
       "args": ["@skalenetwork/privacy-mcp"],
       "env": {
-        "SKALE_RPC_URL": "https://...",
         "SKALE_PRIVATE_KEY": "0x...",
-        "SKALE_WRAPPER_ADDRESS": "0x..."
+        "VIEWER_PRIVATE_KEY": "0x..."
       }
     }
   }
 }
 ```
+
+> `VIEWER_PRIVATE_KEY` is optional but required for `check_private_balance`. `SKALE_NETWORK` defaults to `testnet`.
 
 ### Claude Desktop
 
@@ -118,14 +146,15 @@ Add to `claude_desktop_config.json`:
       "command": "npx",
       "args": ["@skalenetwork/privacy-mcp"],
       "env": {
-        "SKALE_RPC_URL": "https://...",
         "SKALE_PRIVATE_KEY": "0x...",
-        "SKALE_WRAPPER_ADDRESS": "0x..."
+        "VIEWER_PRIVATE_KEY": "0x..."
       }
     }
   }
 }
 ```
+
+> `VIEWER_PRIVATE_KEY` is optional but required for `check_private_balance`. `SKALE_NETWORK` defaults to `testnet`.
 
 ### Cursor / other MCP clients
 
@@ -147,9 +176,7 @@ await server.connect(transport);
 ## Local testing with MCP Inspector
 
 ```bash
-export SKALE_RPC_URL=https://...
 export PRIVATE_KEY=0x...
-export WRAPPER_ADDRESS=0x...
 
 npx @modelcontextprotocol/inspector npx @skalenetwork/privacy-mcp
 ```
