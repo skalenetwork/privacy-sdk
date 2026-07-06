@@ -4,6 +4,9 @@ export interface ChainConfig {
   rpcUrl: string;
   wrapperAddress: Hex;
   label: string;
+  schainName: string;
+  beaconRpcUrl: string;
+  creditStationAddress: Hex;
 }
 
 export const CHAINS: Record<string, ChainConfig> = {
@@ -11,6 +14,9 @@ export const CHAINS: Record<string, ChainConfig> = {
     label: "SKALE Base Sepolia Testnet",
     rpcUrl: "https://base-sepolia-testnet.skalenodes.com/v1/base-testnet",
     wrapperAddress: "0x48d9908986eF5822F419eE5911369f931e7653B3",
+    schainName: "jubilant-horrible-ancha",
+    beaconRpcUrl: "https://sepolia.base.org",
+    creditStationAddress: "0x50734666aa289903B64D97448AB2f370Af370365",
   },
 };
 
