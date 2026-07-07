@@ -117,7 +117,9 @@ export class CreditStation {
       chain: null,
     });
 
-    const approveReceipt = await this.publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+    const approveReceipt = await this.publicClient.waitForTransactionReceipt({
+      hash: approveTxHash,
+    });
     if (approveReceipt.status !== "success") {
       throw new Error(`ERC-20 approve transaction reverted: ${approveTxHash}`);
     }
