@@ -47,16 +47,15 @@ The server is configured via environment variables:
 | Variable | Required | Description |
 |----------|----------|--------------|
 | `SKALE_PRIVATE_KEY` or `PRIVATE_KEY` | **yes** | Private key for signing transactions (`0x...`) |
-| `SKALE_NETWORK` | no | Network name (default: `testnet`) |
-| `SKALE_RPC_URL` | no | Override RPC endpoint (takes precedence over `SKALE_NETWORK`) |
-| `SKALE_WRAPPER_ADDRESS` or `WRAPPER_ADDRESS` | no | Override wrapper contract address (takes precedence over `SKALE_NETWORK`) |
-| `SKALE_VIEWER_PRIVATE_KEY` or `VIEWER_PRIVATE_KEY` | no | Viewer private key for balance decryption |
+| `SKALE_VIEWER_PRIVATE_KEY` or `VIEWER_PRIVATE_KEY` | no | Viewer private key for balance decryption (`check_private_balance`) |
+
+Advanced overrides: `SKALE_RPC_URL`, `SKALE_WRAPPER_ADDRESS`, `BEACON_RPC_URL`, `CREDIT_STATION_ADDRESS`, `SKALE_CHAIN_NAME`.
 
 ### Supported networks
 
 | Name | Chain | RPC |
 |------|-------|-----|
-| `testnet` *(default)* | SKALE Base Sepolia | `https://base-sepolia-testnet.skalenodes.com/v1/base-testnet` |
+| `testnet` | SKALE Base Sepolia | `https://base-sepolia-testnet.skalenodes.com/v1/base-testnet` |
 
 ## Tools
 
@@ -111,6 +110,24 @@ Get metadata about the configured confidential token.
 
 No inputs. Returns `name`, `symbol`, `decimals`, `underlying` ERC-20 address, and `wrapperAddress`.
 
+---
+
+### `get_credit_price`
+Get the price of 1 CREDIT for each supported payment token on the CreditStation contract (beacon chain).
+
+No inputs. Returns an array of `{ token, symbol, decimals, pricePerCredit }`.
+
+---
+
+### `buy_credits`
+Buy credits on the configured SKALE chain via CreditStation on the beacon chain. Handles ERC-20 approval automatically.
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `amount` | `string` | Number of credits to purchase (e.g. `"10"`) |
+| `token` | `string` | ERC-20 token address to pay with (`0x...`) — use `get_credit_price` to find accepted tokens |
+| `schainName` | `string` | *(optional)* SKALE chain name to buy credits for (defaults to configured network) |
+
 ## Integration with AI clients
 
 ### VS Code (Copilot Agent)
@@ -120,7 +137,7 @@ Add to `.vscode/mcp.json` in your project:
 ```json
 {
   "servers": {
-    "skale-privacy": {
+    "programmable-privacy": {
       "type": "stdio",
       "command": "npx",
       "args": ["@skalenetwork/privacy-mcp"],
@@ -133,7 +150,7 @@ Add to `.vscode/mcp.json` in your project:
 }
 ```
 
-> `VIEWER_PRIVATE_KEY` is optional but required for `check_private_balance`. `SKALE_NETWORK` defaults to `testnet`.
+> `VIEWER_PRIVATE_KEY` is optional but required for `check_private_balance`.
 
 ### Claude Desktop
 
@@ -142,7 +159,7 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "skale-privacy": {
+    "programmable-privacy": {
       "command": "npx",
       "args": ["@skalenetwork/privacy-mcp"],
       "env": {
@@ -154,7 +171,7 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
-> `VIEWER_PRIVATE_KEY` is optional but required for `check_private_balance`. `SKALE_NETWORK` defaults to `testnet`.
+> `VIEWER_PRIVATE_KEY` is optional but required for `check_private_balance`.
 
 ### Cursor / other MCP clients
 
