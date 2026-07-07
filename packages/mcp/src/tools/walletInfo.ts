@@ -1,11 +1,12 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { formatUnits } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { createWrapper, getConfigFromEnv } from "../config.js";
 
 export function walletInfoTool(server: McpServer) {
   server.tool(
     "confidential_wallet_info",
-    "Return the configured wallet address, confidential token balance, and token metadata (name, symbol, decimals, underlying ERC-20 address).",
+    "Return the configured wallet address, confidential token balance, and token metadata (name, symbol, decimals, underlying ERC-20 address). Requires VIEWER_PRIVATE_KEY for balance decryption.",
     {},
     async () => {
       const config = getConfigFromEnv();
@@ -20,7 +21,7 @@ export function walletInfoTool(server: McpServer) {
         wrapper.underlying(),
       ]);
 
-      const humanBalance = (Number(balance) / 10 ** decimals).toString();
+      const humanBalance = formatUnits(balance, decimals);
 
       return {
         content: [
