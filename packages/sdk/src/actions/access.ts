@@ -6,12 +6,13 @@ import type { ActionConfig } from "./types.js";
 
 export async function registerViewerKey(config: ActionConfig, publicKey: Hex): Promise<Hex> {
   const { x, y } = parsePublicKeyCoordinates(publicKey);
+  const value = await getCtxOperationCost(config);
   const data = encodeFunctionData({
     abi: confidentialWrapperAbi,
     functionName: "setViewerPublicKey",
     args: [{ x, y }],
   });
-  return config.signer.sendTransaction({ to: config.address, data });
+  return config.signer.sendTransaction({ to: config.address, data, value });
 }
 
 export async function authorizeHistoricViewForRange(
