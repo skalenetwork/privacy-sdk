@@ -6,6 +6,9 @@ import { CHAINS, DEFAULT_NETWORK } from "./chains.js";
 
 type Client = "vscode" | "claude" | "cursor";
 
+const SERVER_NAME = "programmable-privacy";
+const PACKAGE_NAME = "@skalenetwork/privacy-mcp";
+
 function prompt(rl: readline.Interface, question: string): Promise<string> {
   return new Promise((resolve) => rl.question(question, resolve));
 }
@@ -17,37 +20,35 @@ function buildEnv(privateKey: string, viewerKey: string | undefined, network: st
   return env;
 }
 
-function vscodeConfig(env: Record<string, string>): string {
-  return JSON.stringify(
-    {
-      servers: {
-        "skale-privacy": {
-          type: "stdio",
-          command: "npx",
-          args: ["@skalenetwork/privacy-mcp"],
-          env,
-        },
-      },
-    },
-    null,
-    2,
-  );
+function mergeJsonFile(
+  filePath: string,
+  rootKey: string,
+  entry: Record<string, unknown>,
+): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  let existing: Record<string, unknown> = {};
+  if (fs.existsSync(filePath)) {
+    try {
+      existing = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    } catch {
+      // overwrite if unparseable
+    }
+  }
+  const section = (existing[rootKey] as Record<string, unknown>) ?? {};
+  section[SERVER_NAME] = entry;
+  existing[rootKey] = section;
+  fs.writeFileSync(filePath, JSON.stringify(existing, null, 2) + "\n");
+  console.log(`\nWritten to ${filePath}`);
 }
 
-function claudeConfig(env: Record<string, string>): string {
-  return JSON.stringify(
-    {
-      mcpServers: {
-        "skale-privacy": {
-          command: "npx",
-          args: ["@skalenetwork/privacy-mcp"],
-          env,
-        },
-      },
-    },
-    null,
-    2,
-  );
+function buildServerEntry(env: Record<string, string>, includeType = false): Record<string, unknown> {
+  const entry: Record<string, unknown> = {
+    command: "npx",
+    args: [PACKAGE_NAME],
+    env,
+  };
+  if (includeType) entry.type = "stdio";
+  return entry;
 }
 
 function claudeConfigPath(): string {
@@ -108,50 +109,15 @@ export async function runInit(args: string[]) {
   const env = buildEnv(privateKey.trim(), viewerKey, network);
 
   if (client === "vscode") {
-    const dir = path.join(process.cwd(), ".vscode");
-    const filePath = path.join(dir, "mcp.json");
-    fs.mkdirSync(dir, { recursive: true });
-    let existing: Record<string, unknown> = {};
-    if (fs.existsSync(filePath)) {
-      try {
-        existing = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      } catch {
-        // overwrite if unparseable
-      }
-    }
-    const servers = (existing.servers as Record<string, unknown>) ?? {};
-    servers["skale-privacy"] = {
-      type: "stdio",
-      command: "npx",
-      args: ["@skalenetwork/privacy-mcp"],
-      env,
-    };
-    existing.servers = servers;
-    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2) + "\n");
-    console.log(`\nWritten to ${filePath}`);
+    const filePath = path.join(process.cwd(), ".vscode", "mcp.json");
+    mergeJsonFile(filePath, "servers", buildServerEntry(env, true));
   } else if (client === "claude") {
     const filePath = claudeConfigPath();
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    let existing: Record<string, unknown> = {};
-    if (fs.existsSync(filePath)) {
-      try {
-        existing = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      } catch {
-        // overwrite if unparseable
-      }
-    }
-    const mcpServers = (existing.mcpServers as Record<string, unknown>) ?? {};
-    mcpServers["skale-privacy"] = {
-      command: "npx",
-      args: ["@skalenetwork/privacy-mcp"],
-      env,
-    };
-    existing.mcpServers = mcpServers;
-    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2) + "\n");
-    console.log(`\nWritten to ${filePath}`);
+    mergeJsonFile(filePath, "mcpServers", buildServerEntry(env));
   } else if (client === "cursor") {
+    const config = { mcpServers: { [SERVER_NAME]: buildServerEntry(env) } };
     console.log("\nAdd to your Cursor MCP config:\n");
-    console.log(claudeConfig(env));
+    console.log(JSON.stringify(config, null, 2));
   } else {
     console.error(`Unknown client "${client}". Use: vscode, claude, cursor`);
     process.exit(1);
