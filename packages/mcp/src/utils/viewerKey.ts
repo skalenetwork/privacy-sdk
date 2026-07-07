@@ -1,7 +1,16 @@
 import readline from "node:readline";
-import { createWalletClient, http, isAddressEqual, zeroAddress, type Hex } from "viem";
+import {
+  createWalletClient,
+  http,
+  hexToBytes,
+  isAddressEqual,
+  toHex,
+  zeroAddress,
+  type Hex,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { ConfidentialToken, viewerPublicKey, deriveViewerKeypair } from "@skalenetwork/privacy-sdk";
+import { secp256k1 } from "@noble/curves/secp256k1";
+import { ConfidentialToken, deriveViewerKeypair } from "@skalenetwork/privacy-sdk";
 import { prompt } from "./prompt.js";
 
 export function makeToken(rpcUrl: string, wrapperAddress: Hex, signerKey: Hex): ConfidentialToken {
@@ -56,7 +65,8 @@ export async function resolveViewerKey(
     const input = (await prompt(rl, "Viewer private key (0x...): ")).trim() as Hex;
     const viewerPrivateKey = input;
     console.log("Registering viewer key on-chain...");
-    await token.registerViewerPublicKey(viewerPublicKey(viewerPrivateKey));
+    const viewerPublicKey = toHex(secp256k1.getPublicKey(hexToBytes(viewerPrivateKey), false));
+    await token.registerViewerPublicKey(viewerPublicKey);
     console.log("Viewer key registered.");
     return viewerPrivateKey;
   }
@@ -67,9 +77,9 @@ export async function resolveViewerKey(
       transport: http(rpcUrl),
     });
     const sig = await walletClient.signMessage({ message: "SKALE Privacy Viewer Key" });
-    const { privateKey: viewerPrivateKey } = deriveViewerKeypair(sig);
+    const { publicKey: viewerPublicKey, privateKey: viewerPrivateKey } = deriveViewerKeypair(sig);
     console.log("Registering viewer key on-chain...");
-    await token.registerViewerPublicKey(viewerPublicKey(viewerPrivateKey));
+    await token.registerViewerPublicKey(viewerPublicKey);
     console.log("Viewer key registered.");
     return viewerPrivateKey;
   }

@@ -8,8 +8,6 @@ export {
   parsePublicKeyCoordinates,
   deriveViewerKeypair,
   validateViewerKey,
-  viewerKeyCoordinates,
-  viewerPublicKey,
 } from "./utils/viewerKey.js";
 export type { CtxPromise } from "./utils/ctx.js";
 export type {
