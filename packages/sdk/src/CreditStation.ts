@@ -117,7 +117,10 @@ export class CreditStation {
       chain: null,
     });
 
-    await this.publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+    const approveReceipt = await this.publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+    if (approveReceipt.status !== "success") {
+      throw new Error(`ERC-20 approve transaction reverted: ${approveTxHash}`);
+    }
 
     const buyTxHash = await this.walletClient.writeContract({
       address: this.address,
@@ -128,7 +131,10 @@ export class CreditStation {
       chain: null,
     });
 
-    await this.publicClient.waitForTransactionReceipt({ hash: buyTxHash });
+    const buyReceipt = await this.publicClient.waitForTransactionReceipt({ hash: buyTxHash });
+    if (buyReceipt.status !== "success") {
+      throw new Error(`CreditStation buy transaction reverted: ${buyTxHash}`);
+    }
 
     return {
       approveTxHash,
