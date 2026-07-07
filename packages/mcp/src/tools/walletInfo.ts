@@ -5,17 +5,19 @@ import { createWrapper, getConfigFromEnv } from "../config.js";
 export function walletInfoTool(server: McpServer) {
   server.tool(
     "confidential_wallet_info",
-    "Return the configured wallet address and its current confidential token balance.",
+    "Return the configured wallet address, confidential token balance, and token metadata (name, symbol, decimals, underlying ERC-20 address).",
     {},
     async () => {
       const config = getConfigFromEnv();
       const account = privateKeyToAccount(config.privateKey);
       const wrapper = createWrapper(config);
 
-      const [balance, symbol, decimals] = await Promise.all([
+      const [balance, name, symbol, decimals, underlying] = await Promise.all([
         wrapper.decryptBalance(),
+        wrapper.name(),
         wrapper.symbol(),
         wrapper.decimals(),
+        wrapper.underlying(),
       ]);
 
       const humanBalance = (Number(balance) / 10 ** decimals).toString();
@@ -28,6 +30,13 @@ export function walletInfoTool(server: McpServer) {
               {
                 address: account.address,
                 confidential_token_balance: `${humanBalance} ${symbol}`,
+                token: {
+                  name,
+                  symbol,
+                  decimals,
+                  underlying,
+                  wrapperAddress: config.wrapperAddress,
+                },
               },
               null,
               2,
