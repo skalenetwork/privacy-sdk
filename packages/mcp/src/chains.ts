@@ -26,9 +26,7 @@ export function getChainConfig(network: string): ChainConfig {
   const chain = CHAINS[network];
   if (!chain) {
     const available = Object.keys(CHAINS).join(", ");
-    throw new Error(
-      `Unknown network "${network}". Available networks: ${available}`,
-    );
+    throw new Error(`Unknown network "${network}". Available networks: ${available}`);
   }
   return chain;
 }

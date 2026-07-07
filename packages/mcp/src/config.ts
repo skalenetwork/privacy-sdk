@@ -34,7 +34,15 @@ export function getConfigFromEnv(): ResolvedConfig {
     chain.creditStationAddress) as Hex;
   const schainName = process.env.SKALE_CHAIN_NAME ?? chain.schainName;
 
-  return { rpcUrl, privateKey, wrapperAddress, viewerPrivateKey, beaconRpcUrl, creditStationAddress, schainName };
+  return {
+    rpcUrl,
+    privateKey,
+    wrapperAddress,
+    viewerPrivateKey,
+    beaconRpcUrl,
+    creditStationAddress,
+    schainName,
+  };
 }
 
 export function createWrapper(config: ResolvedConfig): ConfidentialWrapper {

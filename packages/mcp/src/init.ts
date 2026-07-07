@@ -61,11 +61,7 @@ function claudeConfigPath(): string {
         "claude_desktop_config.json",
       );
     case "win32":
-      return path.join(
-        process.env.APPDATA ?? os.homedir(),
-        "Claude",
-        "claude_desktop_config.json",
-      );
+      return path.join(process.env.APPDATA ?? os.homedir(), "Claude", "claude_desktop_config.json");
     default:
       return path.join(os.homedir(), ".config", "Claude", "claude_desktop_config.json");
   }

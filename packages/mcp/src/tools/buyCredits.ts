@@ -10,12 +10,19 @@ export function buyCredits(server: McpServer) {
     {
       amount: z.string().describe("Number of credits to purchase (e.g. '10')"),
       token: z.string().describe("ERC-20 token address to pay with (0x...)"),
-      schainName: z.string().optional().describe("SKALE chain name to buy credits for (defaults to configured network)"),
+      schainName: z
+        .string()
+        .optional()
+        .describe("SKALE chain name to buy credits for (defaults to configured network)"),
     },
     async ({ amount, token, schainName }) => {
       const config = getConfigFromEnv();
       const station = createCreditStation(config);
-      const result = await station.buy(BigInt(amount), token as Hex, schainName ?? config.schainName);
+      const result = await station.buy(
+        BigInt(amount),
+        token as Hex,
+        schainName ?? config.schainName,
+      );
 
       return {
         content: [
