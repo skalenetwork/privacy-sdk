@@ -3,7 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Hex } from "viem";
 import { createCreditStation, getConfigFromEnv } from "../config.js";
 
-export function buyCredits(server: McpServer) {
+export function buyCreditsTool(server: McpServer) {
   server.tool(
     "buy_credits",
     "Buy credits on the configured SKALE chain via CreditStation on the beacon chain. Requires prior knowledge of which token to use (call get_credit_price first). Handles ERC-20 approval automatically.",

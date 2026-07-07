@@ -5,4 +5,4 @@ export { unwrapTokensTool } from "./unwrapTokens.js";
 export { revealTransferTool } from "./revealTransfer.js";
 export { tokenInfoTool } from "./tokenInfo.js";
 export { getCreditPriceTool } from "./getCreditPrice.js";
-export { buyCredits } from "./buyCredits.js";
+export { buyCreditsTool } from "./buyCredits.js";

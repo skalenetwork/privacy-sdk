@@ -6,7 +6,7 @@ import { unwrapTokensTool } from "./tools/unwrapTokens.js";
 import { revealTransferTool } from "./tools/revealTransfer.js";
 import { tokenInfoTool } from "./tools/tokenInfo.js";
 import { getCreditPriceTool } from "./tools/getCreditPrice.js";
-import { buyCredits } from "./tools/buyCredits.js";
+import { buyCreditsTool } from "./tools/buyCredits.js";
 
 export function createServer(): McpServer {
   const server = new McpServer({
@@ -21,7 +21,7 @@ export function createServer(): McpServer {
   revealTransferTool(server);
   tokenInfoTool(server);
   getCreditPriceTool(server);
-  buyCredits(server);
+  buyCreditsTool(server);
 
   return server;
 }
