@@ -20,11 +20,7 @@ function buildEnv(privateKey: string, viewerKey: string | undefined, network: st
   return env;
 }
 
-function mergeJsonFile(
-  filePath: string,
-  rootKey: string,
-  entry: Record<string, unknown>,
-): void {
+function mergeJsonFile(filePath: string, rootKey: string, entry: Record<string, unknown>): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   let existing: Record<string, unknown> = {};
   if (fs.existsSync(filePath)) {
@@ -41,7 +37,10 @@ function mergeJsonFile(
   console.log(`\nWritten to ${filePath}`);
 }
 
-function buildServerEntry(env: Record<string, string>, includeType = false): Record<string, unknown> {
+function buildServerEntry(
+  env: Record<string, string>,
+  includeType = false,
+): Record<string, unknown> {
   const entry: Record<string, unknown> = {
     command: "npx",
     args: [PACKAGE_NAME],
