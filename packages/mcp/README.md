@@ -105,10 +105,10 @@ Decrypt a historic confidential transfer to reveal its details (from, to, amount
 
 ---
 
-### `get_token_info`
-Get metadata about the configured confidential token.
+### `confidential_wallet_info`
+Return the configured wallet address, confidential token balance, and token metadata in a single call.
 
-No inputs. Returns `name`, `symbol`, `decimals`, `underlying` ERC-20 address, and `wrapperAddress`.
+No inputs. Requires `SKALE_VIEWER_PRIVATE_KEY` / `VIEWER_PRIVATE_KEY` to be set for balance decryption. Returns `address`, `confidential_token_balance`, and a `token` object with `name`, `symbol`, `decimals`, `underlying` ERC-20 address, and `wrapperAddress`.
 
 ---
 
