@@ -6,3 +6,4 @@ export { revealTransferTool } from "./revealTransfer.js";
 export { tokenInfoTool } from "./tokenInfo.js";
 export { getCreditPriceTool } from "./getCreditPrice.js";
 export { buyCreditsTool } from "./buyCredits.js";
+export { walletInfoTool } from "./walletInfo.js";

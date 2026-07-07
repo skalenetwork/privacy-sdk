@@ -59,3 +59,12 @@ export function deriveViewerKeypair(signature: Hex): ViewerKeypair {
 
   return { privateKey, publicKey, x, y };
 }
+
+export function viewerKeyCoordinates(privateKey: Hex): { x: Hex; y: Hex } {
+  const publicKey = toHex(secp256k1.getPublicKey(hexToBytes(privateKey), false));
+  return parsePublicKeyCoordinates(publicKey);
+}
+
+export function viewerPublicKey(privateKey: Hex): Hex {
+  return toHex(secp256k1.getPublicKey(hexToBytes(privateKey), false));
+}
