@@ -63,7 +63,7 @@ jobs:
         working-directory: packages/mcp
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
-          pnpm publish --access public --tag ${{ env.BRANCH }} --no-git-checks
+          pnpm publish --access public --tag latest --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
