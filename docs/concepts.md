@@ -1,129 +1,95 @@
 # Concepts
 
-## Conditional Transactions (CTX)
+The theory behind confidential tokens: what each flow does, why it stays private, and the protocol
+mechanics underneath. This page is conceptual — for code-level usage (method calls, types), see the
+SDK [flows](../packages/sdk/docs/flows.md) and [API reference](../packages/sdk/docs/api.md).
 
-On SKALE, token balances and transfer amounts are stored encrypted. A Conditional Transaction (CTX)
-is the mechanism that lets smart contracts decrypt data on demand — only when specific conditions
-are met — and receive the decrypted result in a callback one block later.
+For the building blocks and where they sit in the stack, see [Overview](overview.md). For
+definitions, see [Glossary](glossary.md).
 
-In practice: when you call `transfer`, `wrap`, or `unwrap`, the SDK submits a CTX. The network's
-validator committee decrypts the encrypted arguments and delivers the result to the contract's
-`onDecrypt` callback in the next block via an ephemeral wallet.
+---
 
-```
-Block N:    Your tx calls submitCTX(encryptedArgs)
-Block N+1:  Ephemeral wallet calls onDecrypt(decryptedArgs) → balances updated
-```
+## Confidential token flows
 
-This two-step nature means:
-- **`await token.transfer(...)`** resolves as soon as the origin tx is submitted (intent submitted).
-- **`await token.transfer(...).waitForCtx()`** waits for the callback too (balance actually updated).
+How confidential tokens behave, described at the level of mechanics rather than API.
 
-> Learn more: https://docs.skale.space/developers/programmable-privacy/conditional-transactions
+### Encrypted transfer
 
-## Encrypted Transfer Flow
-
-Here is what happens end-to-end when you call `token.transfer(to, amount)`:
+A confidential transfer moves value without revealing the amount or either party's balance on-chain.
+The sender encrypts the transfer value for the token contract, so the contract never sees plaintext
+at submission. One block later — via the [CTX flow](#ctx-flow) — the network decrypts the value,
+updates both balances, re-encrypts them, and emits an event referencing an encrypted payload.
 
 ```
-1. SDK: ABI-encode (holder, amount) → valuePayload
-2. SDK: BITE.encryptMessageForCTX(valuePayload, contractAddress) → encryptedValue
-3. SDK: call encryptedTransfer(to, encryptedValue) with CTX fee attached as msg.value
-
-   ── Block N mined ──────────────────────────────────────────────────────────────────
-
-4. Contract: validates encryptedValue format
-5. Contract: calls submitCTX(encryptedValue) → ephemeral wallet address returned
-
-   ── Between blocks: validator committee decrypts ──────────────────────────────────
-
-6. Block N+1: ephemeral wallet calls onDecrypt(decryptedArgs)
-7. Contract: decodes amount from decryptedArgs, updates sender & receiver balances
-8. Contract: re-encrypts updated balances for each holder
-9. Contract: emits EncryptedTransfer(transferId, from, to, encryptedData)
-
-`waitForCtx()` waits for step 6–9. The `ctxReceipt` it returns contains the `EncryptedTransfer`
-event with the final `transferId`, which is needed for historic decryption.
-
-## How the SDK handles CTX
-
-The SDK abstracts the two-block CTX lifecycle behind familiar async patterns.
-
-### CtxPromise
-
-Methods that produce a CTX return a `CtxPromise` — a plain `Promise<Hex>` augmented with
-`.waitForCtx()`:
-
-```ts
-// Resolves quickly with the origin hash once the tx is submitted:
-const originHash = await token.transfer(to, amount);
-
-// Resolves with CtxResult once the CTX callback is also mined:
-const { originHash, originReceipt, ctxHash, ctxReceipt } =
-  await token.transfer(to, amount).waitForCtx();
+1. Value is encrypted for the contract and submitted as a CTX
+2. Committee decrypts between blocks
+3. Contract updates both balances and re-encrypts them
+4. Contract emits EncryptedTransfer(transferId, …) with an encrypted payload
 ```
 
-Only `transfer`, `wrap`, and `unwrap` return `CtxPromise`. All other write methods return
-`Promise<Hex>` (plain origin hash).
+Nothing observable on-chain reveals the amount or the resulting balances. The `transferId` from the
+emitted event is the handle used later for historical decryption.
 
-### CtxResult
+### Balance decryption
 
-`waitForCtx()` resolves with a `CtxResult` containing both the origin and callback transactions:
+Balances are stored encrypted, so they cannot be read by inspecting chain state. Reading a balance
+is a local act: the holder uses their [viewer key](#viewer-keys) to decrypt the encrypted balance
+that belongs to them. Without the matching viewer private key, the balance is opaque.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `originHash` | `Hex` | Transaction hash of the original call (block N) |
-| `originReceipt` | `TransactionReceipt` | Full receipt of the origin transaction, including logs emitted at submission |
-| `ctxHash` | `Hex` | Transaction hash of the callback delivered by the ephemeral wallet (block N+1) |
-| `ctxReceipt` | `TransactionReceipt` | Full receipt of the callback transaction — contains events like `EncryptedTransfer` with the final `transferId` |
+### Historical transfer decryption
 
-## Viewer Keys
+A past transfer is stored as an encrypted payload. To reveal its details, the network is asked to
+**re-encrypt** that specific transfer for a viewer key (see [Re-encryption flow](#re-encryption-flow)).
+The result — sender, recipient, value, timestamp — is then decryptable only by the holder of that
+viewer key. This is how a transfer can be audited after the fact without ever having been public.
 
-Balances and transfer amounts are encrypted on-chain. To decrypt them you need a **viewer keypair**:
-an secp256k1 keypair derived deterministically from a wallet signature.
+### Viewer keys
 
-```ts
-const signature = await wallet.signMessage("SKALE Privacy Viewer Key");
-const { privateKey, publicKey } = deriveViewerKeypair(signature);
+Because state is encrypted, reading it requires a **viewer key** — a keypair that grants decryption
+access, derived deterministically from a wallet signature and registered on-chain.
+
+Viewer keys are also the basis of **selective disclosure**: a holder can authorize another party to
+view a single transfer or a time range of activity, and later revoke it. Disclosure is scoped and
+explicit — by default nothing is visible to anyone else.
+
+---
+
+## Protocol flows
+
+The deeper mechanics, powered by [BITE](overview.md#protocol-level). Every confidential token flow
+above rides on these.
+
+### CTX flow
+
+A Conditional Transaction (CTX) lets a contract request decryption of encrypted data on demand and
+receive the result in a callback one block later. Between blocks, the validator committee jointly
+decrypts under threshold cryptography — no single party can decrypt alone — and delivers the
+plaintext to the contract through an ephemeral wallet.
+
+```
+Block N:    A tx submits encrypted arguments (submitCTX)
+            → validator committee decrypts between blocks
+Block N+1:  An ephemeral wallet delivers the result (onDecrypt) → state updated
 ```
 
-### Registration
+This two-block lifecycle is why a confidential operation has two meaningful moments: *submitted*
+(block N) and *settled* (block N+1, when state actually changes).
 
-Before others can grant you view access, you must register your public key on-chain:
+### Re-encryption flow
 
-```ts
-await token.registerViewerPublicKey(publicKey);
+Re-encryption takes state that is already encrypted and re-encrypts it for a **specific viewer
+key**, so a chosen party — and only that party — can decrypt it. It is the primitive behind balance
+decryption and historical transfer decryption.
+
+```
+1. A viewer key is registered on-chain (via the encryptECIES precompile)
+2. A request targets specific encrypted data (a balance, or a past transfer)
+3. The network re-encrypts that data for the requesting viewer key
+4. The holder of the matching viewer private key decrypts it locally
 ```
 
-### Decrypting your own balance
+Selective disclosure is re-encryption scoped by authorization: the holder controls *which* data may
+be re-encrypted for *which* viewer.
 
-```ts
-token.setViewerPrivateKey(privateKey);
-const balance = await token.decryptBalance();
-```
-
-### Decrypting a historic transfer
-
-```ts
-// 1. Request the network to re-encrypt the transfer for your viewer key:
-const data = await token.requestTransferDecryption(ctxHash);
-// data: { from, to, value, timestamp, transferId }
-```
-
-You may also grant another address time-range or per-transfer view access:
-
-```ts
-await token.authorizeHistoricViewForRange(viewerAddress, fromTimestamp, toTimestamp);
-await token.authorizeHistoricViewForTransfer(viewerAddress, transferId);
-await token.revokeHistoricView(viewerAddress);
-```
-
-## Three-layer architecture
-
-| Layer | Entry point | Responsibility |
-|-------|-------------|----------------|
-| **Facades** | `"@skalenetwork/privacy-sdk"` | Stateful classes (`ConfidentialToken`, `ConfidentialWrapper`) — the main user-facing API |
-| **Actions** | `"@skalenetwork/privacy-sdk/actions"` | Stateless async functions — use these if you prefer to manage config yourself |
-| **Utils** | `"@skalenetwork/privacy-sdk/utils"` | Crypto primitives, viewer-key derivation, CTX helpers |
-
-You only need to import from the root package for typical use cases.
+> Learn more: [Conditional Transactions](https://docs.skale.space/developers/programmable-privacy/conditional-transactions) ·
+> [Re-encryption](https://docs.skale.space/developers/programmable-privacy/re-encryption)

@@ -1,6 +1,6 @@
 # SKALE Programmable Privacy
 
-Monorepo for SKALE Programmable Privacy tooling — encrypted ERC-20 transfers with on-chain confidential computation.
+Monorepo for SKALE Programmable Privacy tooling — general-purpose on-chain confidentiality with encrypted transactions, confidential computation, and selective disclosure. Confidential tokens (encrypted ERC-20 transfers) are the flagship application built on it.
 
 ## Packages
 
@@ -26,7 +26,7 @@ The SDK abstracts this two-block lifecycle. The MCP server exposes it as intent-
 packages/
 ├── sdk/      @skalenetwork/privacy-sdk  — core TypeScript SDK
 └── mcp/      @skalenetwork/privacy-mcp  — MCP server for AI agents
-docs/         Shared concepts, architecture, and API reference
+docs/         High-level overview, concepts, and glossary
 ```
 
 ## Development
@@ -48,9 +48,13 @@ pnpm --filter @skalenetwork/privacy-mcp build
 
 ## Docs
 
-- [Concepts](packages/sdk/docs/concepts.md) — CTX lifecycle, viewer keys, CtxPromise
-- [Architecture](packages/sdk/docs/architecture.md) — three-layer SDK design
-- [API Reference](packages/sdk/docs/api.md) — full method and type reference
+Start with the [docs entrypoint](docs/README.md), or jump to:
+
+- [Overview](docs/overview.md) — the three-layer stack and every building block
+- [Concepts](docs/concepts.md) — CTX lifecycle, encrypted transfer flow, viewer keys
+- [Glossary](docs/glossary.md) — one-line definitions
+
+Package-specific references live with each package: [SDK docs](packages/sdk/docs), [MCP README](packages/mcp/README.md).
 
 ## Learn more
 

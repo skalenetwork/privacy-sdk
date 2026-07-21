@@ -144,9 +144,11 @@ See [docs/api.md](docs/api.md) for the full actions and utils reference.
 
 ## Docs
 
-- [Concepts](docs/concepts.md) — CTX lifecycle, viewer keys, CtxPromise
+- [Flows](docs/flows.md) — code-level walkthroughs (transfer, decryption, viewer keys)
 - [Architecture](docs/architecture.md) — three-layer design
 - [API Reference](docs/api.md) — full method and type tables
+
+See the repo-level [Concepts](../../docs/concepts.md) for the theory behind these flows.
 
 ## Learn more
 
