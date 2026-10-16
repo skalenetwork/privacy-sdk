@@ -53,5 +53,5 @@ pnpm --filter @skalenetwork/privacy-mcp build
 - [API Reference](packages/sdk/docs/api.md) — full method and type reference
 
 ## Learn more
-
+ 
 - [SKALE Programmable Privacy docs](https://docs.skale.space/developers/programmable-privacy/)
