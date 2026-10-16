@@ -9,6 +9,10 @@ on:
       - beta
       - main
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   publish:
     name: Build and publish
@@ -28,6 +32,10 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 10
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1; pnpm publish delegates to npm
+      - name: Update npm
+        run: npm install -g npm@^11.5.1
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -55,8 +63,6 @@ jobs:
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
           pnpm publish --access public --tag ${{ env.BRANCH }} --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish MCP (pre-release)
         if: env.BRANCH != 'main'
@@ -64,8 +70,6 @@ jobs:
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
           pnpm publish --access public --tag latest --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish SDK (stable)
         if: env.BRANCH == 'main'
@@ -73,8 +77,6 @@ jobs:
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
           pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish MCP (stable)
         if: env.BRANCH == 'main'
@@ -82,8 +84,6 @@ jobs:
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
           pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Set release
         run: |
